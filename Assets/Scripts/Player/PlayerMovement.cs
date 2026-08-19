@@ -13,24 +13,51 @@ public class DoofusController : MonoBehaviour
         float horizontal = Input.GetAxisRaw("Horizontal");
         float vertical = Input.GetAxisRaw("Vertical");
 
-        Vector3 movement = new Vector3(horizontal, 0f, vertical).normalized;
+        Vector3 movement =
+            new Vector3(horizontal, 0f, vertical).normalized;
 
         transform.Translate(
             movement * moveSpeed * Time.deltaTime,
             Space.World
         );
 
-        CheckForNextPulpit();
+        CheckForEdge(horizontal, vertical);
     }
 
-    void CheckForNextPulpit()
+    void CheckForEdge(float horizontal, float vertical)
     {
-        // When Doofus gets close to the forward edge
-        if (transform.position.z >= 4.0f && !spawnedNextPulpit)
-        {
-            pulpitSpawner.SpawnNextPulpit();
+        if (spawnedNextPulpit)
+            return;
 
-            spawnedNextPulpit = true;
+        // Forward
+        if (vertical > 0 && transform.position.z >= 3.0f)
+        {
+            SpawnNext(Vector3.forward);
         }
+
+        // Backward
+        else if (vertical < 0 && transform.position.z <= -3.0f)
+        {
+            SpawnNext(Vector3.back);
+        }
+
+        // Right
+        else if (horizontal > 0 && transform.position.x >= 3.0f)
+        {
+            SpawnNext(Vector3.right);
+        }
+
+        // Left
+        else if (horizontal < 0 && transform.position.x <= -3.0f)
+        {
+            SpawnNext(Vector3.left);
+        }
+    }
+
+    void SpawnNext(Vector3 direction)
+    {
+        pulpitSpawner.SpawnNextPulpit(direction);
+
+        spawnedNextPulpit = true;
     }
 }
