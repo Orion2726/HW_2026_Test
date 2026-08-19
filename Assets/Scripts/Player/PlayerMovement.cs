@@ -2,7 +2,12 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public float moveSpeed = 5f;
+    private float moveSpeed;
+
+    void Start()
+    {
+        moveSpeed = DoofusDiaryLoader.Config.player_data.speed;
+    }
 
     void Update()
     {

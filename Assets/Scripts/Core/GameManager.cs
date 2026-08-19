@@ -5,6 +5,8 @@ public class GameManager : MonoBehaviour
 {
     public GameObject doofus;
     public GameObject gameOverPanel;
+    public GameObject Score;
+    public ScoreManager scoreManager;
 
     public float fallHeight = -5f;
 
@@ -25,6 +27,8 @@ public class GameManager : MonoBehaviour
     {
         gameOver = true;
 
+        scoreManager.UpdateGameOverScore();
+        Score.SetActive(false);
         gameOverPanel.SetActive(true);
 
         Time.timeScale = 0f;
