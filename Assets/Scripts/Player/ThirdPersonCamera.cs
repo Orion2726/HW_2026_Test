@@ -6,12 +6,20 @@ public class ThirdPersonCamera : MonoBehaviour
 
     public Vector3 offset = new Vector3(0f, 6f, -8f);
 
-    void Update()
+    public float followSpeed = 5f;
+
+    void LateUpdate()
     {
         if (target == null)
             return;
 
-        transform.position = target.position + offset;
+        Vector3 desiredPosition = target.position + offset;
+
+        transform.position = Vector3.Lerp(
+            transform.position,
+            desiredPosition,
+            followSpeed * Time.deltaTime
+        );
 
         transform.LookAt(target);
     }
