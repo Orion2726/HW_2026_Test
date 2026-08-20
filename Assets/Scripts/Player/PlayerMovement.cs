@@ -3,7 +3,6 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     private float moveSpeed;
-
     private Animator animator;
 
     void Start()
@@ -24,13 +23,25 @@ public class PlayerMovement : MonoBehaviour
             vertical
         ).normalized;
 
+        // Move Doofus
         transform.Translate(
             movement * moveSpeed * Time.deltaTime,
             Space.World
         );
 
-        float animationSpeed = movement.magnitude;
+        // Rotate character toward movement direction
+        if (movement != Vector3.zero)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(movement);
 
-        animator.SetFloat("Speed", animationSpeed);
+            transform.rotation = Quaternion.Slerp(
+                transform.rotation,
+                targetRotation,
+                10f * Time.deltaTime
+            );
+        }
+
+        // Control animation
+        animator.SetFloat("Speed", movement.magnitude);
     }
 }
