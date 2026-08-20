@@ -1118,6 +1118,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   startPanel: {fileID: 1069458881}
+  score: {fileID: 0}
 --- !u!1 &1207164724
 GameObject:
   m_ObjectHideFlags: 0
@@ -2367,6 +2368,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   startPanel: {fileID: 1069458881}
+  score: {fileID: 1438283705}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
