@@ -4,9 +4,13 @@ public class PlayerMovement : MonoBehaviour
 {
     private float moveSpeed;
 
+    private Animator animator;
+
     void Start()
     {
         moveSpeed = DoofusDiaryLoader.Config.player_data.speed;
+
+        animator = GetComponentInChildren<Animator>();
     }
 
     void Update()
@@ -24,5 +28,9 @@ public class PlayerMovement : MonoBehaviour
             movement * moveSpeed * Time.deltaTime,
             Space.World
         );
+
+        float animationSpeed = movement.magnitude;
+
+        animator.SetFloat("Speed", animationSpeed);
     }
 }
