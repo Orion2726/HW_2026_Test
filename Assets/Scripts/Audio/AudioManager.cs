@@ -1,77 +1,58 @@
 using UnityEngine;
-
 public class AudioManager : MonoBehaviour
 {
-    public static AudioManager Instance;
+    public static AudioManager Instance { get; private set; }
 
+    public AudioSource musicSource;
+    public AudioSource sfxSource;
+    public AudioClip music;
+    public AudioClip uiClick;
+    public AudioClip scoreIncrease;
+    public AudioClip gameOver;
+    [Header("SFX Volumes")]
+    [Range(0f, 1f)] public float uiClickVolume = 1f;
+    [Range(0f, 1f)] public float scoreVolume = 1f;
+    [Range(0f, 1f)] public float gameOverVolume = 1f;
     [Header("Music")]
-    public AudioClip backgroundMusic;
-
-    [Header("Sound Effects")]
-    public AudioClip uiClickSound;
-    public AudioClip scoreIncreaseSound;
-    public AudioClip gameOverSound;
-
-    private AudioSource musicSource;
-    private AudioSource sfxSource;
+    [Range(0f, 1f)] public float musicVolume = 0.073f;
 
     void Awake()
     {
-        // Prevent duplicate AudioManagers
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
-
         Instance = this;
         DontDestroyOnLoad(gameObject);
-
-        // Music source
-        musicSource = gameObject.AddComponent<AudioSource>();
-        musicSource.loop = true;
-        musicSource.playOnAwake = false;
-
-        // SFX source
-        sfxSource = gameObject.AddComponent<AudioSource>();
-        sfxSource.playOnAwake = false;
     }
 
     void Start()
     {
-        PlayMusic();
-    }
-
-    public void PlayMusic()
-    {
-        if (backgroundMusic != null)
+        if (musicSource != null && music != null)
         {
-            musicSource.clip = backgroundMusic;
+            musicSource.clip = music;
+            musicSource.loop = true;
+            //musicSource.volume = musicVolume;
             musicSource.Play();
         }
     }
 
     public void PlayUIClick()
     {
-        if (uiClickSound != null)
-        {
-            sfxSource.PlayOneShot(uiClickSound);
-        }
+        if (sfxSource != null && uiClick != null)
+            sfxSource.PlayOneShot(uiClick, uiClickVolume);
     }
 
     public void PlayScoreIncrease()
     {
-        if (scoreIncreaseSound != null)
-        {
-            sfxSource.PlayOneShot(scoreIncreaseSound);
-        }
+        if (sfxSource != null && scoreIncrease != null)
+            sfxSource.PlayOneShot(scoreIncrease, scoreVolume);
     }
 
     public void PlayGameOver()
     {
-        if (gameOverSound != null)
-        {
-            sfxSource.PlayOneShot(gameOverSound);
-        }
+        if (sfxSource != null && gameOver != null)
+            sfxSource.PlayOneShot(gameOver, gameOverVolume);
     }
 }

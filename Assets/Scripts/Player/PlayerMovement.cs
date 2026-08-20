@@ -4,12 +4,19 @@ public class PlayerMovement : MonoBehaviour
 {
     private float moveSpeed;
     private Animator animator;
+    private Rigidbody rb;
+
+    [Header("Jump")]
+    public float jumpForce = 7f;
+
+    private bool isGrounded;
 
     void Start()
     {
         moveSpeed = DoofusDiaryLoader.Config.player_data.speed;
 
         animator = GetComponentInChildren<Animator>();
+        rb = GetComponent<Rigidbody>();
     }
 
     void Update()
@@ -41,7 +48,25 @@ public class PlayerMovement : MonoBehaviour
             );
         }
 
-        // Control animation
+        // Control walking animation
         animator.SetFloat("Speed", movement.magnitude);
+
+        // Jump
+        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+        {
+            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+
+            isGrounded = false;
+
+            animator.SetTrigger("Jump");
+        }
+    }
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Pulpit"))
+        {
+            isGrounded = true;
+        }
     }
 }
