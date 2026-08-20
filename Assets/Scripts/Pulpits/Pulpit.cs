@@ -1,4 +1,5 @@
 using UnityEngine;
+using TMPro;
 using System.Collections;
 
 public class Pulpit : MonoBehaviour
@@ -10,9 +11,13 @@ public class Pulpit : MonoBehaviour
     public float fadeInTime = 0.35f;
     public float fadeOutTime = 0.35f;
 
+    public TextMeshProUGUI timerText;
+
     private float lifetime;
     private float timer;
+
     private bool nextPulpitSpawned = false;
+    private bool fadeOutStarted = false;
 
     private Renderer[] renderers;
     private Material[] materials;
@@ -36,6 +41,9 @@ public class Pulpit : MonoBehaviour
         // Start invisible
         SetAlpha(0f);
 
+        // Start timer text
+        UpdateTimerText();
+
         // Fade in
         StartCoroutine(FadeIn());
     }
@@ -43,6 +51,9 @@ public class Pulpit : MonoBehaviour
     void Update()
     {
         timer -= Time.deltaTime;
+
+        // Update countdown text
+        UpdateTimerText();
 
         // Spawn next pulpit
         if (timer <= spawnTimeBeforeDeath && !nextPulpitSpawned)
@@ -57,10 +68,20 @@ public class Pulpit : MonoBehaviour
             nextPulpitSpawned = true;
         }
 
-        // Start fading out
-        if (timer <= fadeOutTime)
+        // Start fading out only once
+        if (timer <= fadeOutTime && !fadeOutStarted)
         {
+            fadeOutStarted = true;
+
             StartCoroutine(FadeOut());
+        }
+    }
+
+    void UpdateTimerText()
+    {
+        if (timerText != null)
+        {
+            timerText.text = Mathf.Max(0f, timer).ToString("0.00");
         }
     }
 
@@ -97,11 +118,14 @@ public class Pulpit : MonoBehaviour
             yield return null;
         }
 
+        SetAlpha(0f);
+
         Destroy(gameObject);
     }
 
     void SetAlpha(float alpha)
     {
+        // Fade pulpit materials
         foreach (Material material in materials)
         {
             if (material.HasProperty("_BaseColor"))
@@ -116,6 +140,14 @@ public class Pulpit : MonoBehaviour
                 color.a = alpha;
                 material.color = color;
             }
+        }
+
+        // Fade timer text
+        if (timerText != null)
+        {
+            Color textColor = timerText.color;
+            textColor.a = alpha;
+            timerText.color = textColor;
         }
     }
 }
