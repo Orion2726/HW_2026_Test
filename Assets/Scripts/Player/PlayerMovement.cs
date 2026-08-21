@@ -10,8 +10,10 @@ public class PlayerMovement : MonoBehaviour
     public float jumpForce = 7f;
 
     private bool isGrounded;
+    private int jumpCount = 0;
 
     private Transform cameraTransform;
+    private ScoreManager scoreManager;
 
     void Start()
     {
@@ -21,6 +23,8 @@ public class PlayerMovement : MonoBehaviour
         rb = GetComponent<Rigidbody>();
 
         cameraTransform = Camera.main.transform;
+
+        scoreManager = FindFirstObjectByType<ScoreManager>();
     }
 
     void Update()
@@ -32,7 +36,6 @@ public class PlayerMovement : MonoBehaviour
         Vector3 cameraForward = cameraTransform.forward;
         Vector3 cameraRight = cameraTransform.right;
 
-        // Keep movement on the ground
         cameraForward.y = 0f;
         cameraRight.y = 0f;
 
@@ -71,18 +74,55 @@ public class PlayerMovement : MonoBehaviour
             movement.magnitude
         );
 
-        // Jump
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+        HandleJump();
+    }
+
+    void HandleJump()
+    {
+        if (!Input.GetKeyDown(KeyCode.Space))
+            return;
+
+        if (scoreManager == null)
+            return;
+
+        // No jump before 10 points
+        if (!scoreManager.IsJumpUnlocked())
+            return;
+
+        // Single jump
+        if (scoreManager.IsJumpUnlocked() &&
+            !scoreManager.IsDoubleJumpUnlocked())
         {
-            rb.AddForce(
-                Vector3.up * jumpForce,
-                ForceMode.Impulse
-            );
+            if (isGrounded)
+            {
+                PerformJump();
+            }
 
-            isGrounded = false;
-
-            animator.SetTrigger("Jump");
+            return;
         }
+
+        // Double jump
+        if (scoreManager.IsDoubleJumpUnlocked())
+        {
+            if (jumpCount < 2)
+            {
+                PerformJump();
+            }
+        }
+    }
+
+    void PerformJump()
+    {
+        rb.AddForce(
+            Vector3.up * jumpForce,
+            ForceMode.Impulse
+        );
+
+        jumpCount++;
+
+        isGrounded = false;
+
+        animator.SetTrigger("Jump");
     }
 
     void OnCollisionEnter(Collision collision)
@@ -90,6 +130,9 @@ public class PlayerMovement : MonoBehaviour
         if (collision.gameObject.CompareTag("Pulpit"))
         {
             isGrounded = true;
+
+            // Reset jumps when landing
+            jumpCount = 0;
         }
     }
 }

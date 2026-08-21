@@ -58,12 +58,12 @@ public class ScoreManager : MonoBehaviour
 
     public bool IsJumpUnlocked()
     {
-        return score >= 10;
+        return score >= 1;
     }
 
     public bool IsDoubleJumpUnlocked()
     {
-        return score >= 25;
+        return score >= 2;
     }
 
     void UpdateScoreUI()

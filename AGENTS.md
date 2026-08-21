@@ -2,7 +2,7 @@
 - Project name: HW_2026_Test
 - Unity version: Unity 6000.0.47f1
 - Active game object:
-  - Name: Timer
-  - Tag: Untagged
-  - Layer: UI
+  - Name: Pulpit(Clone)
+  - Tag: Pulpit
+  - Layer: Default
 <!-- UNITY CODE ASSIST INSTRUCTIONS END -->

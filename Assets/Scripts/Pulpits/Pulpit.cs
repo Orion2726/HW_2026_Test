@@ -4,26 +4,38 @@ using System.Collections;
 
 public class Pulpit : MonoBehaviour
 {
-    [Header("Normal Lifetime")]
-    public float minLifetime = 6f;
-    public float maxLifetime = 8f;
 
-    [Header("Jump Phase Lifetime")]
-    public float jumpMinLifetime = 5f;
-    public float jumpMaxLifetime = 7f;
+    [Header("Jump Phase Difficulty")]
+    public float jumpLifetimeMultiplier = 0.9f;
 
-    [Header("Double Jump Phase Lifetime")]
-    public float doubleJumpMinLifetime = 4f;
-    public float doubleJumpMaxLifetime = 6f;
-
-    [Header("Spawning")]
-    public float spawnTimeBeforeDeath = 2.08f;
+    [Header("Double Jump Phase Difficulty")]
+    public float doubleJumpLifetimeMultiplier = 0.8f;
 
     [Header("Fade")]
     public float fadeInTime = 0.35f;
     public float fadeOutTime = 0.35f;
 
-    public TextMeshProUGUI timerText;
+    [Header("Timer")]
+    public TextMeshPro timerText;
+
+    [Header("Special Pulpit Materials")]
+    public Material normalMaterial;
+    public Material sideToSideMaterial;
+    public Material diagonalMaterial;
+    public Material upDownMaterial;
+
+    [Header("Side To Side Movement")]
+    public float sideToSideDistance = 1.5f;
+    public float sideToSideSpeed = 1.5f;
+
+    [Header("Diagonal Movement")]
+    public float diagonalDistance = 1.5f;
+    public float diagonalSpeed = 1.2f;
+
+    [Header("Up Down + Side Movement")]
+    public float verticalDistance = 0.8f;
+    public float upDownSideDistance = 1.5f;
+    public float upDownSpeed = 1.3f;
 
     private float lifetime;
     private float timer;
@@ -36,22 +48,38 @@ public class Pulpit : MonoBehaviour
 
     private ScoreManager scoreManager;
 
+    private Vector3 startingPosition;
+
+    private PulpitType pulpitType;
+
+    private enum PulpitType
+    {
+        Normal,
+        SideToSide,
+        Diagonal,
+        UpDown
+    }
+
     void Start()
     {
         scoreManager = FindFirstObjectByType<ScoreManager>();
 
-        SetLifetime();
+        startingPosition = transform.position;
 
         // Get all renderers in the pulpit
         renderers = GetComponentsInChildren<Renderer>();
 
-        // Create material instances
-        materials = new Material[renderers.Length];
+        // Do NOT include the timer renderer
+        renderers = System.Array.FindAll(
+            renderers,
+            r => timerText == null || r.gameObject != timerText.gameObject
+        );
 
-        for (int i = 0; i < renderers.Length; i++)
-        {
-            materials[i] = renderers[i].material;
-        }
+        // Choose pulpit type and material
+        ChoosePulpitType();
+
+        // Set lifetime using JSON + score progression
+        SetLifetime();
 
         // Start invisible
         SetAlpha(0f);
@@ -65,36 +93,122 @@ public class Pulpit : MonoBehaviour
 
     void SetLifetime()
     {
-        if (scoreManager == null)
+        if (DoofusDiaryLoader.Config == null)
         {
-            lifetime = Random.Range(minLifetime, maxLifetime);
+            Debug.LogError("Doofus Diary Config has not been loaded!");
+            return;
         }
-        else if (scoreManager.Score >= 25)
+
+        // Base lifetime comes directly from JSON
+        float jsonMinLifetime =
+            DoofusDiaryLoader.Config.pulpit_data.min_pulpit_destroy_time;
+
+        float jsonMaxLifetime =
+            DoofusDiaryLoader.Config.pulpit_data.max_pulpit_destroy_time;
+
+        int currentScore = 0;
+
+        if (scoreManager != null)
         {
-            // DOUBLE JUMP PHASE
+            currentScore = scoreManager.Score;
+        }
+
+        if (currentScore < 10)
+        {
+            // Normal phase
             lifetime = Random.Range(
-                doubleJumpMinLifetime,
-                doubleJumpMaxLifetime
+                jsonMinLifetime,
+                jsonMaxLifetime
             );
         }
-        else if (scoreManager.Score >= 10)
+        else if (currentScore < 25)
         {
-            // SINGLE JUMP PHASE
+            // Single jump phase
             lifetime = Random.Range(
-                jumpMinLifetime,
-                jumpMaxLifetime
+                jsonMinLifetime,
+                jsonMaxLifetime
             );
+
+            lifetime *= jumpLifetimeMultiplier;
         }
         else
         {
-            // NORMAL PHASE
+            // Double jump phase
             lifetime = Random.Range(
-                minLifetime,
-                maxLifetime
+                jsonMinLifetime,
+                jsonMaxLifetime
             );
+
+            lifetime *= doubleJumpLifetimeMultiplier;
         }
 
         timer = lifetime;
+    }
+
+    void ChoosePulpitType()
+    {
+        int currentScore = 0;
+
+        if (scoreManager != null)
+        {
+            currentScore = scoreManager.Score;
+        }
+
+        // First 10 points = normal stationary pulpits
+        if (currentScore < 10)
+        {
+            pulpitType = PulpitType.Normal;
+
+            ApplyMaterial(normalMaterial);
+
+            return;
+        }
+
+        // Score 10+ = random special pulpit
+        int randomType = Random.Range(0, 3);
+
+        switch (randomType)
+        {
+            case 0:
+
+                pulpitType = PulpitType.SideToSide;
+
+                ApplyMaterial(sideToSideMaterial);
+
+                break;
+
+            case 1:
+
+                pulpitType = PulpitType.Diagonal;
+
+                ApplyMaterial(diagonalMaterial);
+
+                break;
+
+            case 2:
+
+                pulpitType = PulpitType.UpDown;
+
+                ApplyMaterial(upDownMaterial);
+
+                break;
+        }
+    }
+
+    void ApplyMaterial(Material selectedMaterial)
+    {
+        if (selectedMaterial == null)
+            return;
+
+        materials = new Material[renderers.Length];
+
+        for (int i = 0; i < renderers.Length; i++)
+        {
+            // Create individual material instance
+            materials[i] = new Material(selectedMaterial);
+
+            renderers[i].material = materials[i];
+        }
     }
 
     void Update()
@@ -104,10 +218,14 @@ public class Pulpit : MonoBehaviour
         // Update countdown text
         UpdateTimerText();
 
+        // Move special pulpit
+        HandleMovement();
+
         // Spawn next pulpit
-        if (timer <= spawnTimeBeforeDeath && !nextPulpitSpawned)
+        if (timer <= GetSpawnTime() && !nextPulpitSpawned)
         {
-            PulpitSpawner spawner = FindFirstObjectByType<PulpitSpawner>();
+            PulpitSpawner spawner =
+                FindFirstObjectByType<PulpitSpawner>();
 
             if (spawner != null)
             {
@@ -126,11 +244,84 @@ public class Pulpit : MonoBehaviour
         }
     }
 
+    float GetSpawnTime()
+    {
+        if (DoofusDiaryLoader.Config != null)
+        {
+            return DoofusDiaryLoader.Config
+                .pulpit_data
+                .pulpit_spawn_time;
+        }
+
+        return 2.5f;
+    }
+
+    void HandleMovement()
+    {
+        float time = Time.time;
+
+        switch (pulpitType)
+        {
+            case PulpitType.Normal:
+
+                transform.position =
+                    startingPosition;
+
+                break;
+
+            case PulpitType.SideToSide:
+
+                transform.position =
+                    startingPosition +
+                    Vector3.right *
+                    Mathf.Sin(time * sideToSideSpeed) *
+                    sideToSideDistance;
+
+                break;
+
+            case PulpitType.Diagonal:
+
+                float diagonal =
+                    Mathf.Sin(time * diagonalSpeed);
+
+                transform.position =
+                    startingPosition +
+                    new Vector3(
+                        diagonal * diagonalDistance,
+                        0f,
+                        diagonal * diagonalDistance
+                    );
+
+                break;
+
+            case PulpitType.UpDown:
+
+                float horizontal =
+                    Mathf.Sin(time * upDownSpeed) *
+                    upDownSideDistance;
+
+                float vertical =
+                    Mathf.Sin(time * upDownSpeed) *
+                    verticalDistance;
+
+                transform.position =
+                    startingPosition +
+                    new Vector3(
+                        horizontal,
+                        vertical,
+                        0f
+                    );
+
+                break;
+        }
+    }
+
     void UpdateTimerText()
     {
         if (timerText != null)
         {
-            timerText.text = Mathf.Max(0f, timer).ToString("0.00");
+            timerText.text =
+                Mathf.Max(0f, timer).ToString("0");
         }
     }
 
@@ -142,7 +333,10 @@ public class Pulpit : MonoBehaviour
         {
             elapsed += Time.deltaTime;
 
-            float alpha = Mathf.Clamp01(elapsed / fadeInTime);
+            float alpha =
+                Mathf.Clamp01(
+                    elapsed / fadeInTime
+                );
 
             SetAlpha(alpha);
 
@@ -160,7 +354,11 @@ public class Pulpit : MonoBehaviour
         {
             elapsed += Time.deltaTime;
 
-            float alpha = 1f - Mathf.Clamp01(elapsed / fadeOutTime);
+            float alpha =
+                1f -
+                Mathf.Clamp01(
+                    elapsed / fadeOutTime
+                );
 
             SetAlpha(alpha);
 
@@ -179,14 +377,23 @@ public class Pulpit : MonoBehaviour
         {
             if (material.HasProperty("_BaseColor"))
             {
-                Color color = material.GetColor("_BaseColor");
+                Color color =
+                    material.GetColor("_BaseColor");
+
                 color.a = alpha;
-                material.SetColor("_BaseColor", color);
+
+                material.SetColor(
+                    "_BaseColor",
+                    color
+                );
             }
             else if (material.HasProperty("_Color"))
             {
-                Color color = material.color;
+                Color color =
+                    material.color;
+
                 color.a = alpha;
+
                 material.color = color;
             }
         }
@@ -194,8 +401,11 @@ public class Pulpit : MonoBehaviour
         // Fade timer text
         if (timerText != null)
         {
-            Color textColor = timerText.color;
+            Color textColor =
+                timerText.color;
+
             textColor.a = alpha;
+
             timerText.color = textColor;
         }
     }
