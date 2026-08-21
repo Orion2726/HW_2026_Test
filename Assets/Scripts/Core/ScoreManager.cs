@@ -6,6 +6,8 @@ public class ScoreManager : MonoBehaviour
     public TextMeshProUGUI scoreText;
     public TextMeshProUGUI gameOverScoreText;
 
+    public UnlockNotification unlockNotification;
+
     private int score = 0;
 
     public int Score => score;
@@ -21,6 +23,9 @@ public class ScoreManager : MonoBehaviour
 
     public void AddScore()
     {
+        // Remember score before adding points
+        int previousScore = score;
+
         // Determine how many points this platform is worth
         int pointsToAdd = GetPointsPerPulpit();
 
@@ -33,7 +38,34 @@ public class ScoreManager : MonoBehaviour
             AudioManager.Instance.PlayScoreIncrease();
         }
 
-        // Victory only exists in Normal Mode
+        // =========================
+        // JUMP UNLOCK
+        // =========================
+
+        if (previousScore < 10 && score >= 10)
+        {
+            if (unlockNotification != null)
+            {
+                unlockNotification.ShowJumpUnlocked();
+            }
+        }
+
+        // =========================
+        // DOUBLE JUMP UNLOCK
+        // =========================
+
+        if (previousScore < 25 && score >= 25)
+        {
+            if (unlockNotification != null)
+            {
+                unlockNotification.ShowDoubleJumpUnlocked();
+            }
+        }
+
+        // =========================
+        // NORMAL MODE VICTORY
+        // =========================
+
         if (gameManager != null &&
             gameManager.IsNormalMode() &&
             score >= 50)

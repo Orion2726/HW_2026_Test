@@ -67,7 +67,8 @@ public class PlayerMovement : MonoBehaviour
                 10f * Time.deltaTime
             );
         }
-
+        // Push animation
+        
         // Walking animation
         animator.SetFloat(
             "Speed",
