@@ -29,6 +29,10 @@ public class GameManager : MonoBehaviour
         }
         Time.timeScale = 0f;
     }
+    public void Victory()
+    {
+        Debug.Log("Victory");
+    }
     public void RestartGame()
     {
         Time.timeScale = 1f;

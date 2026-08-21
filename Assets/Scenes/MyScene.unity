@@ -739,6 +739,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4c79fb06f351104ea7f9e2d127cf7db, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  jumpForce: 7
 --- !u!1 &670116699
 GameObject:
   m_ObjectHideFlags: 0
@@ -1273,7 +1274,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   target: {fileID: 661518685}
-  offset: {x: 0, y: 6, z: -8}
+  normalOffset: {x: 0, y: 6, z: -8}
+  jumpOffset: {x: 0, y: 7, z: -10}
+  doubleJumpOffset: {x: 0, y: 8, z: -13}
+  zoomSpeed: 4
   springStiffness: 50
   damping: 6
 --- !u!1 &1069458881
@@ -2419,6 +2423,10 @@ MonoBehaviour:
   pulpitPrefab: {fileID: 7824178020171384920, guid: 28308789e59fc3149abd395ad24d372c, type: 3}
   pulpitSize_1: 6.7
   pulpitSize_2: 6.7
+  jumpPulpitSize_1: 11
+  jumpPulpitSize_2: 11
+  doubleJumpPulpitSize_1: 13
+  doubleJumpPulpitSize_2: 13
 --- !u!1 &1865897392
 GameObject:
   m_ObjectHideFlags: 0

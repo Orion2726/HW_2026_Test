@@ -4,10 +4,22 @@ using System.Collections;
 
 public class Pulpit : MonoBehaviour
 {
+    [Header("Normal Lifetime")]
     public float minLifetime = 6f;
     public float maxLifetime = 8f;
+
+    [Header("Jump Phase Lifetime")]
+    public float jumpMinLifetime = 5f;
+    public float jumpMaxLifetime = 7f;
+
+    [Header("Double Jump Phase Lifetime")]
+    public float doubleJumpMinLifetime = 4f;
+    public float doubleJumpMaxLifetime = 6f;
+
+    [Header("Spawning")]
     public float spawnTimeBeforeDeath = 2.08f;
 
+    [Header("Fade")]
     public float fadeInTime = 0.35f;
     public float fadeOutTime = 0.35f;
 
@@ -22,10 +34,13 @@ public class Pulpit : MonoBehaviour
     private Renderer[] renderers;
     private Material[] materials;
 
+    private ScoreManager scoreManager;
+
     void Start()
     {
-        lifetime = Random.Range(minLifetime, maxLifetime);
-        timer = lifetime;
+        scoreManager = FindFirstObjectByType<ScoreManager>();
+
+        SetLifetime();
 
         // Get all renderers in the pulpit
         renderers = GetComponentsInChildren<Renderer>();
@@ -46,6 +61,40 @@ public class Pulpit : MonoBehaviour
 
         // Fade in
         StartCoroutine(FadeIn());
+    }
+
+    void SetLifetime()
+    {
+        if (scoreManager == null)
+        {
+            lifetime = Random.Range(minLifetime, maxLifetime);
+        }
+        else if (scoreManager.Score >= 25)
+        {
+            // DOUBLE JUMP PHASE
+            lifetime = Random.Range(
+                doubleJumpMinLifetime,
+                doubleJumpMaxLifetime
+            );
+        }
+        else if (scoreManager.Score >= 10)
+        {
+            // SINGLE JUMP PHASE
+            lifetime = Random.Range(
+                jumpMinLifetime,
+                jumpMaxLifetime
+            );
+        }
+        else
+        {
+            // NORMAL PHASE
+            lifetime = Random.Range(
+                minLifetime,
+                maxLifetime
+            );
+        }
+
+        timer = lifetime;
     }
 
     void Update()

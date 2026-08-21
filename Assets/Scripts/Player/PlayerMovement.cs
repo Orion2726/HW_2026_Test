@@ -11,12 +11,16 @@ public class PlayerMovement : MonoBehaviour
 
     private bool isGrounded;
 
+    private Transform cameraTransform;
+
     void Start()
     {
         moveSpeed = DoofusDiaryLoader.Config.player_data.speed;
 
         animator = GetComponentInChildren<Animator>();
         rb = GetComponent<Rigidbody>();
+
+        cameraTransform = Camera.main.transform;
     }
 
     void Update()
@@ -24,11 +28,23 @@ public class PlayerMovement : MonoBehaviour
         float horizontal = Input.GetAxisRaw("Horizontal");
         float vertical = Input.GetAxisRaw("Vertical");
 
-        Vector3 movement = new Vector3(
-            horizontal,
-            0f,
-            vertical
-        ).normalized;
+        // Camera directions
+        Vector3 cameraForward = cameraTransform.forward;
+        Vector3 cameraRight = cameraTransform.right;
+
+        // Keep movement on the ground
+        cameraForward.y = 0f;
+        cameraRight.y = 0f;
+
+        cameraForward.Normalize();
+        cameraRight.Normalize();
+
+        // Camera-relative movement
+        Vector3 movement =
+            (cameraForward * vertical) +
+            (cameraRight * horizontal);
+
+        movement = Vector3.ClampMagnitude(movement, 1f);
 
         // Move Doofus
         transform.Translate(
@@ -36,10 +52,11 @@ public class PlayerMovement : MonoBehaviour
             Space.World
         );
 
-        // Rotate character toward movement direction
+        // Rotate Doofus toward movement
         if (movement != Vector3.zero)
         {
-            Quaternion targetRotation = Quaternion.LookRotation(movement);
+            Quaternion targetRotation =
+                Quaternion.LookRotation(movement);
 
             transform.rotation = Quaternion.Slerp(
                 transform.rotation,
@@ -48,13 +65,19 @@ public class PlayerMovement : MonoBehaviour
             );
         }
 
-        // Control walking animation
-        animator.SetFloat("Speed", movement.magnitude);
+        // Walking animation
+        animator.SetFloat(
+            "Speed",
+            movement.magnitude
+        );
 
         // Jump
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
-            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+            rb.AddForce(
+                Vector3.up * jumpForce,
+                ForceMode.Impulse
+            );
 
             isGrounded = false;
 
