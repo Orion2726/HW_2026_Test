@@ -313,13 +313,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a8e97bd85c06e9945a7cc73ae576532d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  minLifetime: 6
-  maxLifetime: 8
-  jumpMinLifetime: 5
-  jumpMaxLifetime: 7
-  doubleJumpMinLifetime: 4
-  doubleJumpMaxLifetime: 6
-  spawnTimeBeforeDeath: 2.08
+  jumpLifetimeMultiplier: 0.9
+  doubleJumpLifetimeMultiplier: 0.8
   fadeInTime: 0.35
   fadeOutTime: 0.35
   timerText: {fileID: 9016705166776989574}

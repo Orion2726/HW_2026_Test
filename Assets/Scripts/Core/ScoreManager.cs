@@ -10,8 +10,12 @@ public class ScoreManager : MonoBehaviour
 
     public int Score => score;
 
+    private GameManager gameManager;
+
     void Start()
     {
+        gameManager = FindFirstObjectByType<GameManager>();
+
         UpdateScoreUI();
     }
 
@@ -29,15 +33,12 @@ public class ScoreManager : MonoBehaviour
             AudioManager.Instance.PlayScoreIncrease();
         }
 
-        // Check for victory
-        if (score >= 50)
+        // Victory only exists in Normal Mode
+        if (gameManager != null &&
+            gameManager.IsNormalMode() &&
+            score >= 50)
         {
-            GameManager gameManager = FindFirstObjectByType<GameManager>();
-
-            if (gameManager != null)
-            {
-                gameManager.Victory();
-            }
+            gameManager.Victory();
         }
     }
 
@@ -58,12 +59,12 @@ public class ScoreManager : MonoBehaviour
 
     public bool IsJumpUnlocked()
     {
-        return score >= 1;
+        return score >= 10;
     }
 
     public bool IsDoubleJumpUnlocked()
     {
-        return score >= 2;
+        return score >= 25;
     }
 
     void UpdateScoreUI()
