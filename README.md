@@ -125,7 +125,7 @@ This allows new platform types, materials, effects, and gameplay mechanics to be
 | ------------- | ------------------ |
 | W / A / S / D | Move               |
 | Space         | Jump / Double Jump |
-| P             | Push Animation     |
+
  
 ## Game Modes
  
